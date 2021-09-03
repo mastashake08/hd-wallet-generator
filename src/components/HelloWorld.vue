@@ -1,40 +1,61 @@
 <template>
   <div class="hello">
-    <h1>{{ msg }}</h1>
+  <h2>{{mnemonic}}</h2>
     <p>
-      For a guide and recipes on how to configure / customize this project,<br>
-      check out the
-      <a href="https://cli.vuejs.org" target="_blank" rel="noopener">vue-cli documentation</a>.
+      BTC: {{btcAddr}}
     </p>
-    <h3>Installed CLI Plugins</h3>
-    <ul>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-babel" target="_blank" rel="noopener">babel</a></li>
-      <li><a href="https://github.com/vuejs/vue-cli/tree/dev/packages/%40vue/cli-plugin-eslint" target="_blank" rel="noopener">eslint</a></li>
-    </ul>
-    <h3>Essential Links</h3>
-    <ul>
-      <li><a href="https://vuejs.org" target="_blank" rel="noopener">Core Docs</a></li>
-      <li><a href="https://forum.vuejs.org" target="_blank" rel="noopener">Forum</a></li>
-      <li><a href="https://chat.vuejs.org" target="_blank" rel="noopener">Community Chat</a></li>
-      <li><a href="https://twitter.com/vuejs" target="_blank" rel="noopener">Twitter</a></li>
-      <li><a href="https://news.vuejs.org" target="_blank" rel="noopener">News</a></li>
-    </ul>
-    <h3>Ecosystem</h3>
-    <ul>
-      <li><a href="https://router.vuejs.org" target="_blank" rel="noopener">vue-router</a></li>
-      <li><a href="https://vuex.vuejs.org" target="_blank" rel="noopener">vuex</a></li>
-      <li><a href="https://github.com/vuejs/vue-devtools#vue-devtools" target="_blank" rel="noopener">vue-devtools</a></li>
-      <li><a href="https://vue-loader.vuejs.org" target="_blank" rel="noopener">vue-loader</a></li>
-      <li><a href="https://github.com/vuejs/awesome-vue" target="_blank" rel="noopener">awesome-vue</a></li>
-    </ul>
+    <p>
+    ETH: {{ethAddr}}
+    </p>
+
+
   </div>
 </template>
 
 <script>
+const bitcoin = require('bitcoinjs-lib')
+const ethUtil = require('ethereumjs-util')
 export default {
   name: 'HelloWorld',
-  props: {
-    msg: String
+  data () {
+    return {
+      mnemonic: '',
+      seed: '',
+      root: '',
+      btcAddr: '',
+      ethAddr: ''
+    }
+  },
+  async created () {
+    var bip39 = require('bip39')
+    var hdkey = require('hdkey')
+    this.mnemonic = bip39.generateMnemonic()
+    this.seed = await bip39.mnemonicToSeed(this.mnemonic)
+    this.root = hdkey.fromMasterSeed(this.seed)
+    this.generateBTCAddress()
+    this.generateETHAddress()
+  },
+  methods: {
+    generateBTCAddress () {
+      const network = bitcoin.networks.mainnet
+      const path = "m/44'/0'/0'/0/0"
+      var hdMaster = bitcoin.bip32.fromSeed(this.seed, network)
+      const key = hdMaster.derivePath(path)
+      const address = bitcoin.payments.p2pkh({
+        pubkey: key.publicKey,
+        network: network
+      }).address
+      this.btcAddr = address
+    },
+    generateETHAddress (){
+      const path = "m/44'/60'/0'/0/0"
+      const addrNode = this.root.derive(path)
+      const privKey = addrNode._privateKey
+      const pubKey = ethUtil.privateToPublic(privKey)
+      const addr = ethUtil.publicToAddress(pubKey).toString('hex')
+      this.ethAddr = ethUtil.toChecksumAddress('0x'+addr)
+
+    }
   }
 }
 </script>
