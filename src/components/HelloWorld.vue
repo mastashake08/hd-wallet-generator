@@ -7,19 +7,25 @@
     <p>
     ETH: {{ethAddr}}
     </p>
-    <button v-on:click="newWallets">Generate New Mnemonic and Wallets</button>
+    <button class="generate" v-on:click="newWallets">Generate New Mnemonic and Wallets</button>
+  <Info />
   </div>
   <div class="hello" v-else>
-  <button v-on:click="toggleShow">Generate Mnemonic and Wallets</button>
+  <button class="generate" v-on:click="toggleShow">Generate Mnemonic and Wallets</button>
+  <Info />
   </div>
 
 </template>
 
 <script>
+import Info from './Info'
 const bitcoin = require('bitcoinjs-lib')
 const ethUtil = require('ethereumjs-util')
 export default {
   name: 'HelloWorld',
+  components: {
+    Info
+  },
   data () {
     return {
       mnemonic: '',
@@ -51,7 +57,7 @@ export default {
       const path = "m/44'/0'/0'/0/0"
       var hdMaster = bitcoin.bip32.fromSeed(this.seed, network)
       const key = hdMaster.derivePath(path)
-      const address = bitcoin.payments.p2pkh({
+      const address = bitcoin.payments.p2wpkh({
         pubkey: key.publicKey,
         network: network
       }).address
@@ -86,4 +92,13 @@ li {
 a {
   color: #42b983;
 }
+.generate {
+  box-shadow: 10px 5px 5px rgb(242,147,27);
+  margin-right: 5px;
+}
+.buy {
+  box-shadow: 10px 5px 5px rgb(67,72,112);
+  margin-left: 5px;
+}
+
 </style>
