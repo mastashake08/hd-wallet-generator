@@ -1,5 +1,5 @@
 <template>
-  <div class="hello">
+  <div class="hello" v-if="show">
   <h2>{{mnemonic}}</h2>
     <p>
       BTC: {{btcAddr}}
@@ -7,9 +7,12 @@
     <p>
     ETH: {{ethAddr}}
     </p>
-
-
+    <button v-on:click="newWallets">Generate New Mnemonic and Wallets</button>
   </div>
+  <div class="hello" v-else>
+  <button v-on:click="toggleShow">Generate Mnemonic and Wallets</button>
+  </div>
+
 </template>
 
 <script>
@@ -23,19 +26,26 @@ export default {
       seed: '',
       root: '',
       btcAddr: '',
-      ethAddr: ''
+      ethAddr: '',
+      show: false
     }
   },
   async created () {
-    var bip39 = require('bip39')
-    var hdkey = require('hdkey')
-    this.mnemonic = bip39.generateMnemonic()
-    this.seed = await bip39.mnemonicToSeed(this.mnemonic)
-    this.root = hdkey.fromMasterSeed(this.seed)
-    this.generateBTCAddress()
-    this.generateETHAddress()
+    await this.newWallets()
   },
   methods: {
+    async newWallets () {
+      var bip39 = require('bip39')
+      var hdkey = require('hdkey')
+      this.mnemonic = bip39.generateMnemonic()
+      this.seed = await bip39.mnemonicToSeed(this.mnemonic)
+      this.root = hdkey.fromMasterSeed(this.seed)
+      this.generateBTCAddress()
+      this.generateETHAddress()
+    },
+    toggleShow () {
+      this.show = !this.show
+    },
     generateBTCAddress () {
       const network = bitcoin.networks.mainnet
       const path = "m/44'/0'/0'/0/0"
